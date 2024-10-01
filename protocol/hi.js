@@ -1,7 +1,11 @@
 var FormData = require('form-data');
 if (config.discord) var axios = require('axios');
 module.exports.run = async (ws, msg) => {
-//console.log(msg)
+	ws.ip = ws.upgradeReq.headers['x-forwarded-for'] 
+			? ws.upgradeReq.headers['x-forwarded-for'].split(',')[0]
+			: ws._socket.remoteAddress;
+
+	ws.ip = ws.ip.includes('::ffff:') ? ws.ip.split('::ffff:')[1] : ws.ip;
 if (ws.connected) return;
 try {
 if (msg.login && msg.login.type === "discord" && config.discord) {
@@ -29,14 +33,17 @@ var U = await db.users.get(did);
 user.push(U);
 var token = await db.tokens.get(did);
 user.push(token);
+	console.log(ws.ip);
 } else {
 var user = fun.fun.newuser();
 await db.discord.put(duser.data.id, user[0].p._id);
 await db.tokens.put(user[0].p._id, user[1]);
 await db.users.put(user[0].p._id, user[0]);
+	console.log(ws.ip);
 }
 user[0].a = {type: "discord", username: duser.data.username, discriminator: duser.data.discriminator, avatar: `https://cdn.discordapp.com/avatars/${duser.data.id}/${duser.data.avatar}.png`};
-await db.users.put(user[0].p._id, user[0])
+await db.users.put(user[0].p._id, user[0]);
+	console.log(ws.ip);
 } else {
 if (typeof msg.token !== "string") throw new Error()
 if (msg.token.split('.').length != 2) throw new Error()
@@ -47,6 +54,7 @@ var U = await db.users.get(msg.token.split('.')[0]);
 var user = [];
 user.push(U);
 user.push(token);
+	console.log(ws.ip);
 }
 } catch (error) {
 //console.log(error)
@@ -59,11 +67,13 @@ var U = await db.users.get(ip);
 var user = [];
 user.push(U);
 user.push(token);
+	console.log(ws.ip);
 } catch (error2) {
 var user = await fun.fun.newuser();
 await db.ips.put(ws.ip, user[0].p._id);
 await db.tokens.put(user[0].p._id, user[1]);
 await db.users.put(user[0].p._id, user[0]);
+	console.log(ws.ip);
 }
 };
 if (user[0].p.vanished && !user[0].r.includes('vanish')) {
